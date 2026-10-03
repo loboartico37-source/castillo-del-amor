@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>La Meta de Tu Corazón 🐱🏰💖</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --fondo-top:#0b061a;
+    --fondo-mid:#20103a;
+    --fondo-bot:#481d4c;
+    --crema:#fff5f8;
+    --dorado:#ffd166;
+  }
+
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{
+    margin:0; padding:0; width:100%; height:100%;
+    overflow:hidden;
+    background:linear-gradient(180deg,var(--fondo-top),var(--fondo-mid));
+    font-family:'Quicksand',sans-serif;
+    color:var(--crema);
+    touch-action:none;
+  }
+  .pixel{ font-family:'Press Start 2P',monospace; }
+
+  button{
+    font-family:'Press Start 2P',monospace;
+    cursor:pointer; border:none; outline:none; background:none;
+  }
+  button:focus-visible{ outline:3px solid var(--dorado); outline-offset:3px; }
+
+  .btn-principal{
+    font-size:11px;
+    padding:16px 26px;
+    color:#fff;
+    background:linear-gradient(180deg,#ff477e,#d81e5b);
+    border-radius:12px;
+    box-shadow:0 6px 0 #9e1341, 0 10px 20px rgba(0,0,0,.4);
+    letter-spacing:1px;
+    transition:transform .1s ease, box-shadow .1s ease;
+  }
+  .btn-principal:hover{ transform:translateY(-2px); }
+  .btn-principal:active{ transform:translateY(3px); box-shadow:0 2px 0 #9e1341; }
+
+  #startScreen, #victoryScreen, #sceneScreen, #letterScreen{
+    position:fixed; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; z-index:50;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(255,112,166,.2), transparent 40%),
+      linear-gradient(160deg, #0b061a, #20103a 60%, #481d4c);
+    padding:24px; overflow:hidden;
+  }
+  .titulo-inicio{
+    font-size:clamp(14px,3.5vw,22px);
+    line-height:2;
+    margin:0 0 30px;
+    text-shadow:3px 3px 0 #000;
+    color:#ffb3c6;
+    max-width:650px;
+  }
+  .subtitulo{
+    font-family:'Quicksand',sans-serif;
+    font-weight:600;
+    font-size:15px;
+    color:#ffd166;
+    margin-top:18px;
+    text-shadow:1px 1px 2px #000;
+  }
+
+  .flotante{
+    position:absolute; pointer-events:none; animation:flotar linear infinite; opacity:.8;
+  }
+  @keyframes flotar{
+    0%{ transform:translateY(110vh) rotate(0deg); opacity:0; }
+    10%{ opacity:.8; }
+    90%{ opacity:.7; }
+    100%{ transform:translateY(-10vh) rotate(360deg); opacity:0; }
+  }
+
+  #gameContainer{
+    position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:#0b061a;
+  }
+  #canvasWrap{
+    position:relative; width:100%; max-width:960px; aspect-ratio:960/540; margin:auto;
+  }
+  #gameCanvas{
+    width:100%; height:100%; display:block; border-radius:12px;
+    box-shadow:0 12px 40px rgba(0,0,0,.7); background:#0b061a;
+    image-rendering:pixelated; image-rendering:crisp-edges;
+  }
+
+  #hud{
+    position:absolute; top:14px; left:14px;
+    font-family:'Press Start 2P',monospace; font-size:10px; color:#fff;
+    background:rgba(32,16,58,0.9); border:2px solid #ff70a6;
+    padding:8px 12px; border-radius:8px; z-index:5; pointer-events:none;
+  }
+
+  #instrucciones{
+    position:absolute; top:14px; right:14px;
+    font-family:'Press Start 2P',monospace; font-size:9px; color:#ffd166;
+    background:rgba(32,16,58,0.9); border:2px solid #ff70a6;
+    padding:8px 12px; border-radius:8px; z-index:5; pointer-events:none;
+    max-width:180px; line-height:1.5;
+  }
+
+  #touchControls{
+    position:absolute; inset:0; display:none; pointer-events:none; z-index:6;
+  }
+  .touch-btn{
+    position:absolute; bottom:18px; width:64px; height:64px; border-radius:14px;
+    background:rgba(255,255,255,.2); border:2px solid #ff70a6;
+    display:flex; align-items:center; justify-content:center;
+    font-size:26px; pointer-events:auto; color:#fff; user-select:none;
+  }
+  .touch-btn:active{ background:rgba(255,112,166,.5); }
+  #btnLeft{ left:18px; }
+  #btnRight{ left:92px; }
+  #btnJump{ right:18px; width:78px; height:78px; border-radius:50%; }
+
+  @media (pointer:coarse){ #touchControls{ display:block; } }
+
+  /* Pantalla de la escena final usando castillo.jpg[cite: 5] */
+  #sceneScreen{ display:none; }
+  .scene-card{
+    background: rgba(32, 16, 58, 0.92);
+    border: 3px solid #ff70a6;
+    border-radius: 16px;
+    padding: 20px;
+    max-width: 750px;
+    width: 92%;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.8);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .scene-img-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 680px;
+    margin-bottom: 16px;
+  }
+  .scene-img{
+    width: 100%;
+    border-radius: 10px;
+    border: 2px solid #ffd166;
+    display: block;
+  }
+  /* Las tres perritas juntas acompañando en la escena final[cite: 5] */
+  .perritas-overlay {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(11, 6, 26, 0.9);
+    border: 2px solid #ff70a6;
+    border-radius: 12px;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.6);
+    white-space: nowrap;
+  }
+  .perrita-item {
+    font-size: 9px;
+    font-family: 'Press Start 2P', monospace;
+    color: #ffd166;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+  .perrita-item span { font-size: 16px; }
+
+  #victoryScreen{ display:none; }
+  .victoria-titulo{
+    font-size:clamp(16px,4vw,26px); margin-bottom:12px; text-shadow:3px 3px 0 #000; color:#ffd166;
+  }
+  .victoria-sub{
+    font-family:'Quicksand',sans-serif; font-weight:600; font-size:16px; margin:14px 0 28px; color:#ffb3c6;
+  }
+
+  #confetti{ position:fixed; inset:0; pointer-events:none; z-index:45; overflow:hidden; }
+  .confetti-piece{ position:absolute; top:-10%; font-size:20px; animation:caer linear forwards; }
+  @keyframes caer{
+    0%{ transform:translateY(0) rotate(0deg); opacity:1; }
+    100%{ transform:translateY(115vh) rotate(360deg); opacity:.3; }
+  }
+
+  #letterScreen{ display:none; }
+  .letter-title{ font-size:clamp(14px,3.2vw,20px); margin-bottom:30px; text-shadow:2px 2px 0 #000; color:#ffd166; }
+
+  #envelope{
+    position:relative; width:220px; height:150px; cursor:pointer; filter:drop-shadow(0 10px 20px rgba(0,0,0,0.6));
+  }
+  #envelope .cuerpo{ position:absolute; inset:0; background:#fff5f8; border:3px solid #d81e5b; border-radius:6px; }
+  #envelope .solapa{
+    position:absolute; top:-3px; left:-3px; right:-3px; height:75px;
+    background:linear-gradient(135deg,#ff477e,#d81e5b);
+    clip-path:polygon(0 0, 100% 0, 50% 85%); border-radius:6px 6px 0 0;
+    transform-origin:top; transition:transform .6s cubic-bezier(.2,1.4,.4,1); z-index:3;
+  }
+  #envelope.abierto .solapa{ transform:rotateX(180deg); }
+  #envelope .corazon-sello{
+    position:absolute; top:32px; left:50%; transform:translateX(-50%);
+    font-size:26px; z-index:4; animation:latido 1.4s ease-in-out infinite;
+  }
+  #envelope.abierto .corazon-sello{ display:none; }
+  @keyframes latido{ 0%,100%{ transform:translateX(-50%) scale(1); } 50%{ transform:translateX(-50%) scale(1.15); } }
+  #envelope .toque{ position:absolute; bottom:8px; width:100%; text-align:center; font-size:10px; font-family:'Press Start 2P',monospace; color:#481d4c; }
+
+  #cartaBox{
+    display:none; max-width:560px; width:92%; max-height:78vh;
+    background:#fff5f8; color:#20103a; border:3px solid #d81e5b; border-radius:14px;
+    padding:30px 24px; box-shadow:0 15px 40px rgba(0,0,0,0.6); overflow-y:auto;
+    animation:aparecerCarta .5s ease;
+  }
+  @keyframes aparecerCarta{ 0%{ opacity:0; transform:translateY(25px) scale(.95); } 100%{ opacity:1; transform:translateY(0) scale(1); } }
+  #cartaTexto{ font-size:15px; line-height:1.8; text-align:left; white-space:pre-wrap; font-weight:600; }
+  .cursor-escritura{ display:inline-block; width:2px; background:#d81e5b; margin-left:2px; animation:parpadeo .8s steps(1) infinite; }
+  @keyframes parpadeo{ 50%{ opacity:0; } }
+
+  #cartaFirma{ margin-top:20px; font-family:'Press Start 2P',monospace; font-size:12px; color:#d81e5b; opacity:0; transition:opacity 1s ease; }
+  #volverJugar{ margin-top:24px; opacity:0; transition:opacity 1s ease; }
+  .oculto{ display:none !important; }
+  ::-webkit-scrollbar{ width:6px; }
+  ::-webkit-scrollbar-thumb{ background:#ff70a6; border-radius:3px; }
+</style>
+</head>
+<body>
+
+<div id="startScreen">
+  <div id="startDecor"></div>
+  <h1 class="titulo-inicio pixel">🏰 EL CASTILLO DE TU CORAZÓN 🏰<br>¡Ayuda al gatito caballero a llegar con su amada! 🐱💖</h1>
+  <button class="btn-principal" id="btnComenzar">COMENZAR 🐾</button>
+  <p class="subtitulo">Usa flechas o A/D para moverte, ESPACIO para saltar</p>
+</div>
+
+<div id="gameContainer">
+  <div id="canvasWrap">
+    <canvas id="gameCanvas" width="960" height="540"></canvas>
+    <div id="hud">💖 <span id="contadorMonedas">0</span> / <span id="totalMonedas">12</span></div>
+    <div id="instrucciones">← → / A D: Mover<br>ESPACIO: Saltar</div>
+    <div id="touchControls">
+      <div class="touch-btn" id="btnLeft">◀</div>
+      <div class="touch-btn" id="btnRight">▶</div>
+      <div class="touch-btn" id="btnJump">▲</div>
+    </div>
+  </div>
+</div>
+
+<!-- ESCENA FINAL CON TU IMAGEN castillo.jpg Y LAS 3 PERRITAS[cite: 5] -->
+<div id="sceneScreen">
+  <div id="sceneDecor"></div>
+  <div class="scene-card">
+    <div class="scene-img-wrap">
+      <img src="castillo.jpg" alt="Escena Final del Castillo" class="scene-img">
+      
+      <!-- Las tres perritas juntas apoyando en la escena final[cite: 5] -->
+      <div class="perritas-overlay">
+        <div class="perrita-item"><span>🐶🐾</span>Lunita</div>
+        <div class="perrita-item"><span>🐕🐾</span>Akira</div>
+        <div class="perrita-item"><span>🐺🛡️</span>Leya</div>
+      </div>
+    </div>
+    <button class="btn-principal" id="btnSiguienteCarta">SIGUIENTE 💌</button>
+  </div>
+</div>
+
+<div id="victoryScreen">
+  <div id="victoryDecor"></div>
+  <h2 class="victoria-titulo pixel">🌟 ¡LLEGASTE A LA META DE TU CORAZÓN! 🌟</h2>
+  <p class="victoria-sub">La gatita te esperaba en su hermoso castillo rosadito.</p>
+  <button class="btn-principal" id="btnAbrirRegalo">VER MI CARTA 💌</button>
+</div>
+<div id="confetti"></div>
+
+<div id="letterScreen">
+  <div id="letterDecor"></div>
+  <h2 class="letter-title pixel">Para ti con todo mi corazón 💖</h2>
+
+  <div id="envelope">
+    <div class="solapa"></div>
+    <div class="corazon-sello">💌</div>
+    <div class="cuerpo"></div>
+    <div class="toque">TOCA PARA ABRIR</div>
+  </div>
+
+  <div id="cartaBox">
+    <div id="cartaTexto"></div>
+    <div id="cartaFirma" class="pixel">Te amo con el alma 🐾❤️</div>
+    <button class="btn-principal oculto" id="volverJugar">VOLVER A JUGAR 🎮</button>
+  </div>
+</div>
+
+<!-- Audio con la canción "Sweet" de Cigarettes After Sex -->
+<audio id="musicaFondo" loop>
+  <source src="sweet.mp3" type="audio/mp3">
+  Tu navegador no soporta audio.
+</audio>
+
+<script>
+const CONFIG = {
+  NUM_MONEDAS: 12,
+  VELOCIDAD_JUGADOR: 4.5,
+  FUERZA_SALTO: 14.5,
+  GRAVEDAD: 0.62,
+
+  FRASES_ESCENARIO: [
+    "¡Te amo muchísimo! ❤️",
+    "Eres mi estrella más brillante ✨",
+    "¡Miau, te quiero un montón! 🐱",
+    "Mi lugar favorito es a tu lado 🏡",
+    "Gracias por existir en mi vida 💖",
+    "Contigo todo es mágico 🌟",
+    "Eres mi sol y mi luna 🌙",
+    "Cada latido es para ti 💓",
+    "Gracias por ser mi lugar seguro en este mundo 🏡",
+    "Incluso en la distancia, estamos bajo el mismo cielo ✨"
+  ],
+
+  CARTA_TEXTO:
+`Mi amor, este castillo al inicio, el valiente gatito caballero naranja con su espada, Lunita, Akira y Leya cuidando el camino, y la hermosa gatita esperándote en su castillo rosadito representan exactamente lo que siento: tú eres mi destino favorito y la meta de mi corazón. 🐾❤
+
+No importa lo largo que sea el camino, siempre valdrá la pena si es para estar contigo.
+
+¡Feliz día del novio! Quería hacerte un regalo especial, algo hecho solo para ti que lograra conmover tu corazón, recordándote cada día lo importante que eres en mi vida.
+
+Gracias por tu amor tan bonito y por ser mi hogar en cualquier parte del mundo.
+
+Te amo hoy, mañana y para siempre. 💖`,
+
+  COLORES: {
+    gatoCuerpo: "#ff9f43",
+    gatoOscuro: "#d35400",
+    suelo1: "#150b29",
+    suelo2: "#ff70a6",
+    plataforma: "#7209b7",
+    plataformaBorde: "#f72585"
+  }
+};
+
+document.getElementById('totalMonedas').textContent = CONFIG.NUM_MONEDAS;
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width;
+const H = canvas.height;
+
+let monedasRecolectadas = 0;
+let juegoActivo = false;
+let tiempo = 0;
+
+const teclas = { izq:false, der:false, salto:false };
+
+window.addEventListener('keydown', e=>{
+  if(['ArrowLeft','a','A'].includes(e.key)) teclas.izq = true;
+  if(['ArrowRight','d','D'].includes(e.key)) teclas.der = true;
+  if([' ','w','W','ArrowUp'].includes(e.key)){ teclas.salto = true; e.preventDefault(); }
+});
+window.addEventListener('keyup', e=>{
+  if(['ArrowLeft','a','A'].includes(e.key)) teclas.izq = false;
+  if(['ArrowRight','d','D'].includes(e.key)) teclas.der = false;
+  if([' ','w','W','ArrowUp'].includes(e.key)) teclas.salto = false;
+});
+
+function ligarBotonTactil(id, prop){
+  const el = document.getElementById(id);
+  const on = ev=>{ teclas[prop]=true; ev.preventDefault(); };
+  const off = ev=>{ teclas[prop]=false; ev.preventDefault(); };
+  el.addEventListener('touchstart', on, {passive:false});
+  el.addEventListener('touchend', off, {passive:false});
+  el.addEventListener('touchcancel', off, {passive:false});
+  el.addEventListener('mousedown', on);
+  el.addEventListener('mouseup', off);
+  el.addEventListener('mouseleave', off);
+}
+ligarBotonTactil('btnLeft','izq');
+ligarBotonTactil('btnRight','der');
+ligarBotonTactil('btnJump','salto');
+
+const WORLD_WIDTH = 4000;
+const GROUND_Y = 460;
+
+let plataformas, monedas, obstaculos, rios, zonaPerritas, zonaLeya, cartelEspecial, decoraciones, meta, player, particulas, textoPopups, nubesPixel, estrellasPixel, estrellasFugaces, corazonesAmbiente, luciérnagas, luciérnagasMeta;
+
+function generarMundo(){
+  plataformas = [
+    { x:0, y:GROUND_Y, w:WORLD_WIDTH, h:H-GROUND_Y, color:'suelo' }
+  ];
+
+  rios = [
+    { x: 2850, w: 120 }
+  ];
+
+  zonaPerritas = {
+    x: 1300,
+    mensaje: "Lunita y Akira: \"Siempre te amaremos, gracias por haber estado en nuestras vidas y amarnos 🐾💖\"",
+    ladridoSonado: false
+  };
+
+  zonaLeya = {
+    x: 2250,
+    mensaje: "Leya cuidará bien de las dos pequeñas niñas",
+    ladridoSonado: false
+  };
+
+  cartelEspecial = {
+    x: 320,
+    mensaje: "Cada paso que das en este camino es un latido de mi corazón acercándose al tuyo 💖✨"
+  };
+
+  const plataformasFlotantes = [
+    {x:480,  y:350, w:120},
+    {x:750,  y:275, w:110},
+    {x:1050, y:360, w:130},
+    {x:1650, y:265, w:110},
+    {x:1950, y:340, w:140},
+    {x:2520, y:340, w:140},
+    {x:3150, y:275, w:110},
+    {x:3450, y:360, w:140},
+    {x:3750, y:300, w:130}
+  ];
+  plataformasFlotantes.forEach(p=>{
+    plataformas.push({ x:p.x, y:p.y, w:p.w, h:24, color:'flotante' });
+  });
+
+  obstaculos = [350, 980, 3650].map(x=>({
+    x, y:GROUND_Y-30, w:28, h:30
+  }));
+
+  monedas = [];
+  const totalPosiblesSpots = [
+    {x:220, y:GROUND_Y-45}, {x:540, y:310}, {x:810, y:235},
+    {x:1150, y:GROUND_Y-45}, {x:1715, y:220}, {x:2010, y:300},
+    {x:2600, y:300}, {x:3215, y:235}, {x:3515, y:320}, {x:3850, y:GROUND_Y-45}
+  ];
+  
+  const n = Math.min(CONFIG.NUM_MONEDAS, totalPosiblesSpots.length);
+  for(let i=0;i<n;i++){
+    const spot = totalPosiblesSpots[i];
+    monedas.push({ x:spot.x, y:spot.y, r:12, viva:true, giro:Math.random()*Math.PI*2 });
+  }
+  document.getElementById('totalMonedas').textContent = n;
+
+  decoraciones = [];
+  const posicionesFrases = [600, 950, 3300, 1700, 2500];
+  posicionesFrases.forEach((x,i)=>{
+    decoraciones.push({
+      x, y: 90 + (i%3)*50,
+      texto: CONFIG.FRASES_ESCENARIO[i % CONFIG.FRASES_ESCENARIO.length]
+    });
+  });
+
+  meta = { x: WORLD_WIDTH-180, y: GROUND_Y-170, alcanzada:false };
+
+  player = {
+    x:180, y:GROUND_Y-46, w:38, h:44,
+    vx:0, vy:0, onGround:false,
+    mirando:1,
+    caminando:false, cicloAnim:0
+  };
+
+  particulas = [];
+  textoPopups = [];
+
+  nubesPixel = Array.from({length:10},(_,i)=>({
+    x: i*420 + Math.random()*200,
+    y: 40 + Math.random()*130,
+    escala: .8 + Math.random()*.6
+  }));
+  estrellasPixel = Array.from({length:90},()=>({
+    x: Math.random()*WORLD_WIDTH,
+    y: Math.random()*280,
+    fase: Math.random()*Math.PI*2
+  }));
+
+  estrellasFugaces = Array.from({length:4},()=>({
+    x: Math.random()*WORLD_WIDTH,
+    y: Math.random()*150,
+    vx: -6 - Math.random()*4,
+    vy: 2 + Math.random()*2,
+    longitud: 40 + Math.random()*30,
+    activo: Math.random() > 0.5
+  }));
+
+  corazonesAmbiente = Array.from({length:35},()=>({
+    x: Math.random()*WORLD_WIDTH,
+    y: Math.random()*H,
+    vel: 0.4 + Math.random()*.8,
+    escala: .6 + Math.random()*.8,
+    fase: Math.random()*Math.PI*2
+  }));
+
+  luciérnagas = Array.from({length:25},()=>({
+    x: Math.random()*WORLD_WIDTH,
+    y: 100 + Math.random()*320,
+    vx: (Math.random()-.5)*1.2,
+    vy: (Math.random()-.5)*1.2,
+    fase: Math.random()*Math.PI*2
+  }));
+
+  luciérnagasMeta = Array.from({length:20},()=>({
+    offsetX: (Math.random() - 0.5) * 180,
+    offsetY: (Math.random() - 0.5) * 140,
+    velFase: 0.012 + Math.random() * 0.015,
+    fase: Math.random() * Math.PI * 2,
+    tam: 3 + Math.random() * 3
+  }));
+}
+
+let audioCtx = null;
+function beep(freq, duracion, tipo='sine', vol=.15){
+  try{
+    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = tipo; osc.frequency.value = freq; gain.gain.value = vol;
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start();
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duracion);
+    osc.stop(audioCtx.currentTime + duracion);
+  }catch(e){}
+}
+function sonidoSalto(){ beep(520,.15,'square',.08); }
+function sonidoMoneda(){ beep(880,.12,'sine',.12); setTimeout(()=>beep(1180,.12,'sine',.1),60); }
+function sonidoVictoria(){ [660,880,990,1320].forEach((f,i)=>setTimeout(()=>beep(f,.25,'sine',.1), i*130)); }
+
+function sonidoLadrido(){
+  try{
+    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+    osc.frequency.setValueAtTime(380, audioCtx.currentTime + 0.03);
+    osc.frequency.setValueAtTime(420, audioCtx.currentTime + 0.07);
+    osc.type = 'sawtooth';
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.1);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+  }catch(e){}
+}
+
+let camaraX = 0;
+
+function actualizar(){
+  tiempo++;
+
+  player.caminando = false;
+  if(teclas.izq){ player.vx = -CONFIG.VELOCIDAD_JUGADOR; player.mirando=-1; player.caminando=true; }
+  else if(teclas.der){ player.vx = CONFIG.VELOCIDAD_JUGADOR; player.mirando=1; player.caminando=true; }
+  else{ player.vx = 0; }
+
+  if(player.caminando) player.cicloAnim += 0.3;
+
+  if(teclas.salto && player.onGround){
+    player.vy = -CONFIG.FUERZA_SALTO;
+    player.onGround = false;
+    sonidoSalto();
+  }
+
+  player.vy += CONFIG.GRAVEDAD;
+  if(player.vy > 22) player.vy = 22;
+
+  player.x += player.vx;
+  const solidos = [...plataformas.filter(p=>p.color==='flotante'), ...obstaculos];
+  solidos.forEach(s=>{
+    if(rectChocan(player, s)){
+      if(player.vx > 0) player.x = s.x - player.w;
+      else if(player.vx < 0) player.x = s.x + s.w;
+    }
+  });
+  if(player.x < 0) player.x = 0;
+  if(player.x > WORLD_WIDTH - player.w) player.x = WORLD_WIDTH - player.w;
+
+  player.onGround = false;
+  player.y += player.vy;
+
+  const suelo = plataformas[0];
+  if(rectChocan(player, suelo) && player.vy >= 0){
+    let enRio = false;
+    rios.forEach(r => {
+      if(player.x + player.w/2 > r.x && player.x + player.w/2 < r.x + r.w) {
+        enRio = true;
+      }
+    });
+
+    if(enRio) {
+      player.vy = -8;
+    } else {
+      player.y = suelo.y - player.h;
+      player.vy = 0;
+      player.onGround = true;
+    }
+  }
+
+  [...plataformas.filter(p=>p.color==='flotante'), ...obstaculos].forEach(s=>{
+    if(rectChocan(player, s)){
+      if(player.vy >= 0 && (player.y + player.h - player.vy) <= s.y + 1){
+        player.y = s.y - player.h;
+        player.vy = 0;
+        player.onGround = true;
+      } else if(player.vy < 0 && (player.y - player.vy) >= s.y + s.h - 1){
+        player.y = s.y + s.h;
+        player.vy = 0;
+      }
+    }
+  });
+
+  monedas.forEach(m=>{
+    if(!m.viva) return;
+    m.giro += 0.12;
+    const dx = (player.x+player.w/2) - m.x;
+    const dy = (player.y+player.h/2) - m.y;
+    if(Math.sqrt(dx*dx+dy*dy) < 32){
+      m.viva = false;
+      monedasRecolectadas++;
+      document.getElementById('contadorMonedas').textContent = monedasRecolectadas;
+      sonidoMoneda();
+      
+      textoPopups.push({
+        x: m.x,
+        y: m.y - 10,
+        texto: "+1",
+        vida: 35,
+        vy: -1.2
+      });
+
+      for(let i=0;i<12;i++){
+        particulas.push({
+          x:m.x, y:m.y,
+          vx:(Math.random()-.5)*5, vy:(Math.random()-.5)*5-1,
+          vida:30, color:'#ffd166'
+        });
+      }
+    }
+  });
+
+  const checkLadrido = (zona) => {
+    if (!zona.ladridoSonado && Math.abs((player.x + player.w/2) - zona.x) < 140) {
+      sonidoLadrido();
+      zona.ladridoSonado = true;
+    }
+  };
+  checkLadrido(zonaPerritas);
+  checkLadrido(zonaLeya);
+
+  particulas.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; p.vy+=0.08; p.vida--; });
+  particulas = particulas.filter(p=>p.vida>0);
+
+  textoPopups.forEach(tp=>{ tp.y += tp.vy; tp.vida--; });
+  textoPopups = textoPopups.filter(tp => tp.vida > 0);
+
+  corazonesAmbiente.forEach(c=>{
+    c.y -= c.vel;
+    c.fase += 0.02;
+    if(c.y < -20){ c.y = H+20; c.x = Math.random()*WORLD_WIDTH; }
+  });
+
+  luciérnagas.forEach(l=>{
+    l.x += l.vx + Math.sin(tiempo*0.05 + l.fase)*0.5;
+    l.y += l.vy + Math.cos(tiempo*0.05 + l.fase)*0.5;
+    if(l.x < 0) l.x = WORLD_WIDTH;
+    if(l.x > WORLD_WIDTH) l.x = 0;
+    if(l.y < 50) l.y = 50;
+    if(l.y > GROUND_Y - 20) l.y = GROUND_Y - 20;
+  });
+
+  estrellasFugaces.forEach(ef=>{
+    ef.x += ef.vx;
+    ef.y += ef.vy;
+    if(ef.x < -100 || ef.y > H || Math.random() < 0.01){
+      ef.x = camaraX + W + Math.random()*300;
+      ef.y = Math.random()*150;
+    }
+  });
+
+  camaraX = Math.max(0, Math.min(player.x - W/2, WORLD_WIDTH - W));
+
+  if(!meta.alcanzada && player.x > meta.x - 30){
+    meta.alcanzada = true;
+    ganarNivel();
+  }
+
+  if(player.y > H + 120){
+    player.x = 180; player.y = GROUND_Y-46; player.vy = 0;
+  }
+}
+
+function rectChocan(a, b){
+  return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y;
+}
+
+function dibujar(){
+  const grad = ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,'#0b061a');
+  grad.addColorStop(.5,'#20103a');
+  grad.addColorStop(1,'#481d4c');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0,0,W,H);
+
+  // LUNA LLENA
+  ctx.save();
+  ctx.shadowColor = '#fff5f8';
+  ctx.shadowBlur = 35;
+  ctx.fillStyle = '#fffdfa';
+  ctx.beginPath();
+  ctx.arc(W - 120, 90, 45, 0, Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle = '#eddcd2';
+  ctx.fillRect(W - 135, 75, 10, 8);
+  ctx.fillRect(W - 110, 105, 12, 10);
+  ctx.fillRect(W - 100, 70, 8, 8);
+  ctx.restore();
+
+  estrellasPixel.forEach(s=>{
+    const sx = s.x - camaraX*0.4;
+    if(sx < -10 || sx > W+10) return;
+    const alpha = 0.5 + Math.sin(tiempo*0.06 + s.fase)*0.5;
+    ctx.fillStyle = `rgba(255,255,255,${Math.max(0,alpha)})`;
+    ctx.fillRect(sx, s.y, s.fase > 4 ? 4 : 2, s.fase > 4 ? 4 : 2);
+  });
+
+  estrellasFugaces.forEach(ef=>{
+    const sfx = ef.x - camaraX*0.4;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(sfx, ef.y);
+    ctx.lineTo(sfx - ef.vx * 4, ef.y - ef.vy * 4);
+    ctx.stroke();
+    ctx.fillStyle = '#ffd166';
+    ctx.fillRect(sfx, ef.y, 3, 3);
+    ctx.restore();
+  });
+
+  nubesPixel.forEach(n=>{
+    const nx = n.x - camaraX*0.25;
+    if(nx < -200 || nx > W+200) return;
+    dibujarNubePixel(nx, n.y, n.escala);
+  });
+
+  ctx.save();
+  ctx.translate(-camaraX, 0);
+
+  corazonesAmbiente.forEach(c=>{
+    ctx.save();
+    ctx.globalAlpha = 0.4 + Math.sin(c.fase)*0.2;
+    ctx.font = `${18*c.escala}px sans-serif`;
+    ctx.fillText('💖', c.x, c.y);
+    ctx.restore();
+  });
+
+  dibujarCastilloIluminado(80, GROUND_Y - 240);
+
+  luciérnagas.forEach(l=>{
+    const lx = l.x;
+    const ly = l.y;
+    const alphaLuc = 0.5 + Math.sin(tiempo*0.08 + l.fase)*0.5;
+    ctx.save();
+    ctx.globalAlpha = Math.max(0.1, alphaLuc);
+    ctx.shadowColor = '#ffd166';
+    ctx.shadowBlur = 10;
+    ctx.fillStyle = '#fff3b0';
+    ctx.fillRect(lx, ly, 4, 4);
+    ctx.restore();
+  });
+
+  for(let x=15; x<WORLD_WIDTH; x+=55){
+    let enRio = false;
+    rios.forEach(r => { if(x > r.x && x < r.x + r.w) enRio = true; });
+    let zonaDePerritas = (x > 1150 && x < 1450);
+    let zonaLeyaCheck = (x > 2100 && x < 2400);
+    if(!enRio && !zonaDePerritas && !zonaLeyaCheck) dibujarFlorMejorada(x, GROUND_Y-8);
+  }
+
+  decoraciones.forEach(d=>{
+    ctx.save();
+    ctx.globalAlpha = 0.8 + Math.sin(tiempo*0.03 + d.x)*0.2;
+    ctx.font = "10px 'Press Start 2P', monospace";
+    ctx.fillStyle = '#ffd166';
+    ctx.shadowColor = '#000';
+    ctx.shadowBlur = 6;
+    ctx.textAlign = 'center';
+    ctx.fillText(d.texto, d.x, d.y);
+    ctx.restore();
+  });
+
+  const suelo = plataformas[0];
+  ctx.fillStyle = CONFIG.COLORES.suelo1;
+  ctx.fillRect(suelo.x, suelo.y, suelo.w, suelo.h);
+  ctx.fillStyle = CONFIG.COLORES.suelo2;
+  ctx.fillRect(suelo.x, suelo.y, suelo.w, 10);
+  
+  for(let bx=0; bx<WORLD_WIDTH; bx+=32){
+    ctx.fillStyle = '#ffd166';
+    ctx.fillRect(bx+4, suelo.y+3, 6, 6);
+  }
+
+  rios.forEach(r => {
+    ctx.fillStyle = '#4cc9f0';
+    ctx.fillRect(r.x, GROUND_Y + 2, r.w, H - GROUND_Y);
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    const ondaX = r.x + (Math.sin(tiempo * 0.05) * 10);
+    ctx.fillRect(ondaX, GROUND_Y + 8, 30, 4);
+
+    ctx.fillStyle = '#b5651d';
+    ctx.fillRect(r.x + 20, GROUND_Y - 2, 80, 8);
+    ctx.fillStyle = '#8b4513';
+    ctx.fillRect(r.x + 25, GROUND_Y + 2, 70, 3);
+  });
+
+  dibujarPerritasJuntas(zonaPerritas.x, GROUND_Y - 28);
+  const distanciaPerritas = Math.abs((player.x + player.w/2) - zonaPerritas.x);
+  if(distanciaPerritas < 140) {
+    ctx.save();
+    ctx.font = "8px 'Press Start 2P', monospace";
+    ctx.fillStyle = "#ffd166";
+    ctx.shadowColor = "#000";
+    ctx.shadowBlur = 6;
+    ctx.textAlign = "center";
+    ctx.fillText(zonaPerritas.mensaje, zonaPerritas.x, GROUND_Y - 60);
+    ctx.restore();
+  }
+
+  dibujarCartelEspecial(cartelEspecial.x, GROUND_Y - 35);
+  const distanciaCartel = Math.abs((player.x + player.w/2) - cartelEspecial.x);
+  if(distanciaCartel < 130) {
+    ctx.save();
+    ctx.font = "8px 'Press Start 2P', monospace";
+    ctx.fillStyle = "#ffd166";
+    ctx.shadowColor = "#000";
+    ctx.shadowBlur = 6;
+    ctx.textAlign = "center";
+    ctx.fillText(cartelEspecial.mensaje, cartelEspecial.x, GROUND_Y - 65);
+    ctx.restore();
+  }
+
+  dibujarLeyaHusky(zonaLeya.x, GROUND_Y - 42);
+  const distanciaLeya = Math.abs((player.x + player.w/2) - zonaLeya.x);
+  if(distanciaLeya < 150) {
+    ctx.save();
+    ctx.font = "8px 'Press Start 2P', monospace";
+    ctx.fillStyle = "#ffd166";
+    ctx.shadowColor = "#000";
+    ctx.shadowBlur = 6;
+    ctx.textAlign = "center";
+    ctx.fillText(zonaLeya.mensaje, zonaLeya.x, GROUND_Y - 75);
+    ctx.restore();
+  }
+
+  plataformas.filter(p=>p.color==='flotante').forEach((p)=>{
+    ctx.fillStyle = CONFIG.COLORES.plataforma;
+    ctx.fillRect(p.x, p.y, p.w, p.h);
+    ctx.fillStyle = CONFIG.COLORES.plataformaBorde;
+    ctx.fillRect(p.x, p.y, p.w, 6);
+    ctx.fillStyle = '#ffd166';
+    ctx.fillRect(p.x+10, p.y+9, 4, 4);
+    ctx.fillRect(p.x+p.w-14, p.y+9, 4, 4);
+  });
+
+  obstaculos.forEach(o=>{
+    ctx.fillStyle = '#ff3366';
+    ctx.beginPath();
+    ctx.moveTo(o.x + o.w/2, o.y);
+    ctx.lineTo(o.x + o.w, o.y + o.h);
+    ctx.lineTo(o.x, o.y + o.h);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(o.x + o.w/2 - 2, o.y + 8, 4, 10);
+  });
+
+  monedas.forEach(m=>{
+    if(!m.viva) return;
+    const escalaX = Math.abs(Math.cos(m.giro));
+    ctx.save();
+    ctx.translate(m.x, m.y);
+    ctx.scale(escalaX, 1);
+    ctx.font = '24px sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.shadowColor = '#ffd166';
+    ctx.shadowBlur = 14;
+    ctx.fillText('💖', 0, 0);
+    ctx.restore();
+  });
+
+  particulas.forEach(p=>{
+    ctx.globalAlpha = Math.max(0, p.vida/30);
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x, p.y, 4, 4);
+    ctx.globalAlpha = 1;
+  });
+
+  textoPopups.forEach(tp=>{
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, tp.vida / 35);
+    ctx.font = "11px 'Press Start 2P', monospace";
+    ctx.fillStyle = "#ffd166";
+    ctx.shadowColor = "#000";
+    ctx.shadowBlur = 6;
+    ctx.textAlign = 'center';
+    ctx.fillText(tp.texto, tp.x, tp.y);
+    ctx.restore();
+  });
+
+  dibujarGatitaEnCastilloRosadito(meta.x, GROUND_Y - 140);
+
+  dibujarGatitoCaballero();
+
+  ctx.restore();
+}
+
+function dibujarCastilloIluminado(x, y){
+  ctx.save();
+  ctx.fillStyle = '#3a3f47';
+  ctx.fillRect(x, y + 60, 50, 180);
+  ctx.fillRect(x + 130, y + 60, 50, 180);
+  ctx.fillRect(x + 40, y + 20, 100, 220);
+
+  ctx.fillStyle = '#22262e';
+  for(let bx=x+6; bx<x+174; bx+=20){
+    for(let by=y+30; by<y+230; by+=16){
+      ctx.fillRect(bx, by, 8, 6);
+    }
+  }
+
+  ctx.fillStyle = '#d95325';
+  ctx.beginPath(); ctx.moveTo(x - 8, y + 60); ctx.lineTo(x + 25, y + 5); ctx.lineTo(x + 58, y + 60); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(x + 122, y + 60); ctx.lineTo(x + 155, y + 5); ctx.lineTo(x + 188, y + 60); ctx.closePath(); ctx.fill();
+  
+  ctx.fillStyle = '#e65c2b';
+  ctx.beginPath(); ctx.moveTo(x + 30, y + 20); ctx.lineTo(x + 90, y - 40); ctx.lineTo(x + 150, y + 20); ctx.closePath(); ctx.fill();
+
+  ctx.save();
+  ctx.shadowColor = '#ffd166';
+  ctx.shadowBlur = 12;
+  ctx.fillStyle = '#ffd166';
+  ctx.fillRect(x + 18, y + 80, 12, 20);
+  ctx.fillRect(x + 150, y + 80, 12, 20);
+  ctx.fillRect(x + 82, y + 40, 16, 24);
+  ctx.fillRect(x + 72, y + 110, 10, 16);
+  ctx.fillRect(x + 98, y + 110, 10, 16);
+  ctx.restore();
+
+  ctx.fillStyle = '#8B4513';
+  ctx.beginPath();
+  ctx.arc(x + 90, y + 170, 18, Math.PI, 0, false);
+  ctx.fillRect(x + 72, y + 170, 36, 70);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function dibujarCartelEspecial(x, y){
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.fillStyle = '#7209b7';
+  ctx.fillRect(-3, 0, 6, 35);
+  ctx.fillStyle = '#fff5f8';
+  ctx.strokeStyle = '#f72585';
+  ctx.lineWidth = 2;
+  ctx.fillRect(-18, -12, 36, 18);
+  ctx.strokeRect(-18, -12, 36, 18);
+  ctx.font = "10px sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("📜", 0, -3);
+  ctx.restore();
+}
+
+function dibujarPerritasJuntas(x, y){
+  ctx.save();
+  ctx.translate(x, y);
+
+  ctx.fillStyle = '#ff70a6';
+  ctx.fillRect(-40, 16, 80, 10);
+  ctx.fillStyle = '#ffb3c6';
+  ctx.fillRect(-36, 18, 72, 6);
+
+  // Beagle
+  ctx.save();
+  ctx.translate(-22, 2);
+  ctx.fillStyle = '#d7ccc8';
+  ctx.fillRect(-10, 2, 20, 14);
+  ctx.fillStyle = '#8d5524';
+  ctx.fillRect(-6, 4, 10, 10);
+  ctx.fillStyle = '#d7ccc8';
+  ctx.fillRect(-11, -13, 22, 15);
+  ctx.fillStyle = '#8d5524';
+  ctx.fillRect(-16, -11, 6, 14);
+  ctx.fillRect(10, -11, 6, 14);
+  ctx.fillStyle = '#20103a';
+  ctx.fillRect(-5, -7, 2, 2);
+  ctx.fillRect(3, -7, 2, 2);
+  ctx.fillRect(-2, -3, 4, 3);
+  ctx.restore();
+
+  // Perrita Gris
+  ctx.save();
+  ctx.translate(22, 2);
+  ctx.fillStyle = '#9e9e9e';
+  ctx.fillRect(-10, 2, 20, 14);
+  ctx.fillStyle = '#757575';
+  ctx.fillRect(-6, 6, 12, 8);
+  ctx.fillStyle = '#9e9e9e';
+  ctx.fillRect(-11, -13, 22, 15);
+  ctx.fillStyle = '#757575';
+  ctx.fillRect(-15, -12, 6, 12);
+  ctx.fillRect(9, -12, 6, 12);
+  ctx.fillStyle = '#20103a';
+  ctx.fillRect(-5, -7, 2, 2);
+  ctx.fillRect(3, -7, 2, 2);
+  ctx.fillRect(-2, -3, 4, 3);
+  ctx.restore();
+
+  ctx.font = "14px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("💖 🐾 💖", 0, -30 + Math.sin(tiempo * 0.08) * 3);
+
+  ctx.restore();
+}
+
+function dibujarLeyaHusky(x, y){
+  ctx.save();
+  ctx.translate(x, y);
+
+  ctx.fillStyle = '#7209b7';
+  ctx.fillRect(-28, 22, 56, 8);
+  ctx.fillStyle = '#f72585';
+  ctx.fillRect(-24, 24, 48, 4);
+
+  ctx.fillStyle = '#cfd8dc';
+  ctx.fillRect(-20, 4, 40, 20);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(-12, 8, 24, 14);
+
+  ctx.fillStyle = '#cfd8dc';
+  ctx.fillRect(-18, -16, 36, 22);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(-12, -10, 24, 14);
+
+  ctx.fillStyle = '#90a4ae';
+  ctx.beginPath(); ctx.moveTo(-18, -16); ctx.lineTo(-14, -32); ctx.lineTo(-8, -16); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(8, -16); ctx.lineTo(14, -32); ctx.lineTo(18, -16); ctx.closePath(); ctx.fill();
+
+  ctx.fillStyle = '#ffb3c6';
+  ctx.beginPath(); ctx.moveTo(-15, -18); ctx.lineTo(-14, -28); ctx.lineTo(-10, -18); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(10, -18); ctx.lineTo(14, -28); ctx.lineTo(15, -18); ctx.closePath(); ctx.fill();
+
+  ctx.fillStyle = '#20103a';
+  ctx.fillRect(-8, -8, 3, 3);
+  ctx.fillRect(5, -8, 3, 3);
+  
+  ctx.fillStyle = '#37474f';
+  ctx.fillRect(-3, -3, 6, 4);
+
+  ctx.font = "16px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("💖 🛡️ 💖", 0, -38 + Math.sin(tiempo * 0.08) * 3);
+
+  ctx.restore();
+}
+
+function dibujarGatitaEnCastilloRosadito(x, y){
+  ctx.save();
+  ctx.translate(x - 20, y);
+
+  ctx.fillStyle = '#e0a9d8';
+  ctx.fillRect(0, 40, 90, 100);
+  ctx.fillStyle = '#c77bc1';
+  ctx.fillRect(10, 50, 15, 12);
+  ctx.fillRect(40, 70, 15, 12);
+  ctx.fillRect(65, 50, 15, 12);
+  ctx.fillRect(20, 90, 15, 12);
+  ctx.fillRect(55, 90, 15, 12);
+
+  ctx.fillStyle = '#b565a7';
+  ctx.fillRect(-15, 65, 30, 75);
+  ctx.fillRect(75, 65, 30, 75);
+
+  ctx.fillStyle = '#ff477e';
+  ctx.beginPath(); ctx.moveTo(-20, 65); ctx.lineTo(0, 30); ctx.lineTo(20, 65); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(70, 65); ctx.lineTo(90, 30); ctx.lineTo(110, 65); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(25, 40); ctx.lineTo(45, 5); ctx.lineTo(65, 40); ctx.closePath(); ctx.fill();
+
+  ctx.save();
+  ctx.shadowColor = '#ffd166';
+  ctx.shadowBlur = 10;
+  ctx.fillStyle = '#ffd166';
+  ctx.fillRect(37, 55, 16, 22);
+  ctx.restore();
+
+  ctx.fillStyle = '#3a194f';
+  ctx.beginPath();
+  ctx.arc(45, 115, 12, Math.PI, 0, false);
+  ctx.fillRect(33, 115, 24, 25);
+  ctx.fill();
+
+  ctx.save();
+  ctx.translate(33, 15);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(-12, 10, 4, 10);
+
+  ctx.fillStyle = '#e0e0e0';
+  ctx.fillRect(-6, 14, 5, 6);
+  ctx.fillRect(5, 14, 5, 6);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(-10, -2, 20, 18);
+  ctx.strokeStyle = '#20103a';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(-10, -2, 20, 18);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(-12, -18, 24, 16);
+  ctx.strokeStyle = '#20103a';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(-12, -18, 24, 16);
+
+  ctx.beginPath();
+  ctx.moveTo(-12, -18); ctx.lineTo(-8, -25); ctx.lineTo(-4, -18); ctx.closePath();
+  ctx.fillStyle = '#ffffff'; ctx.fill(); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(4, -18); ctx.lineTo(8, -25); ctx.lineTo(12, -18); ctx.closePath();
+  ctx.fillStyle = '#ffffff'; ctx.fill(); ctx.stroke();
+
+  ctx.fillStyle = '#ffb3c6';
+  ctx.beginPath(); ctx.moveTo(-10, -19); ctx.lineTo(-8, -23); ctx.lineTo(-6, -19); ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(6, -19); ctx.lineTo(8, -23); ctx.lineTo(10, -19); ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = '#ff477e';
+  ctx.fillRect(7, -26, 6, 4);
+
+  ctx.fillStyle = '#20103a';
+  ctx.fillRect(-6, -13, 2.5, 2.5);
+  ctx.fillRect(3, -13, 2.5, 2.5);
+
+  ctx.fillStyle = '#ff70a6';
+  ctx.fillRect(-9, -10, 3, 2);
+  ctx.fillRect(6, -10, 3, 2);
+
+  ctx.fillStyle = '#ff3366';
+  ctx.fillRect(-1, -9, 2, 2);
+
+  ctx.restore();
+  ctx.restore();
+
+  ctx.save();
+  ctx.translate(x, y);
+  luciérnagasMeta.forEach((lm, idx)=>{
+    const ang = tiempo * lm.velFase + idx;
+    const lx = lm.offsetX + Math.sin(ang) * 25;
+    const ly = lm.offsetY + Math.cos(ang) * 20;
+    const brillo = 0.4 + Math.sin(tiempo * 0.03 + idx) * 0.5;
+
+    ctx.save();
+    ctx.globalAlpha = Math.max(0.15, brillo);
+    ctx.shadowColor = idx % 2 === 0 ? '#ffd166' : '#ff70a6';
+    ctx.shadowBlur = 14;
+    ctx.fillStyle = idx % 2 === 0 ? '#fff3b0' : '#ffb3c6';
+    ctx.fillRect(lx, ly, lm.tam, lm.tam);
+    ctx.restore();
+  });
+  ctx.restore();
+
+  ctx.save();
+  ctx.translate(x - 30, y - 68);
+  
+  ctx.fillStyle = '#7209b7';
+  ctx.fillRect(55, 12, 4, 32);
+
+  ctx.fillStyle = '#fff5f8';
+  ctx.strokeStyle = '#f72585';
+  ctx.lineWidth = 3;
+  ctx.fillRect(-22, -12, 160, 26);
+  ctx.strokeRect(-22, -12, 160, 26);
+
+  ctx.font = "8px 'Press Start 2P', monospace";
+  ctx.fillStyle = '#7209b7';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText("LA META DE TU CORAZÓN", 58, 1);
+
+  ctx.restore();
+}
+
+function dibujarNubePixel(x,y,escala){
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.scale(escala,escala);
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.fillRect(-30, -10, 60, 20);
+  ctx.fillRect(-45, -2, 90, 14);
+  ctx.fillRect(-20, -18, 40, 10);
+  ctx.restore();
+}
+
+function dibujarFlorMejorada(x,y){
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.fillStyle = '#06d6a0';
+  ctx.fillRect(0, -10, 2, 10);
+  ctx.fillRect(-3, -5, 3, 2);
+  ctx.fillRect(2, -7, 3, 2);
+  const colorFlor = (x % 120 === 0) ? '#ffd166' : ((x % 80 === 0) ? '#ef476f' : '#ff70a6');
+  ctx.fillStyle = colorFlor;
+  ctx.fillRect(-4, -14, 10, 8);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(-1, -11, 4, 4);
+  ctx.restore();
+}
+
+function dibujarGatitoCaballero(){
+  const p = player;
+  const cx = p.x + p.w/2;
+  const bob = p.onGround && p.caminando ? Math.sin(p.cicloAnim)*3 : 0;
+  const saltando = !p.onGround;
+
+  ctx.save();
+  ctx.translate(cx, p.y + p.h/2 + bob);
+  ctx.scale(p.mirando, 1);
+
+  ctx.fillStyle = 'rgba(0,0,0,0.5)';
+  ctx.fillRect(-14, p.h/2 + 2 - bob, 28, 4);
+
+  ctx.fillStyle = CONFIG.COLORES.gatoCuerpo;
+  const movCola = Math.sin(tiempo*0.15)*4;
+  ctx.fillRect(-18, -2 + movCola, 4, 12);
+  ctx.fillRect(-22, -6 + movCola, 4, 4);
+
+  ctx.fillStyle = CONFIG.COLORES.gatoOscuro;
+  const paso = p.caminando && p.onGround ? Math.sin(p.cicloAnim)*6 : (saltando ? 4 : 0);
+  ctx.fillRect(-10, 14 + paso, 6, 8);
+  ctx.fillRect(4, 14 - paso, 6, 8);
+
+  ctx.fillStyle = CONFIG.COLORES.gatoCuerpo;
+  ctx.fillRect(-14, -6, 28, 22);
+
+  ctx.fillStyle = '#d0d7de';
+  ctx.fillRect(-13, -4, 26, 18);
+  ctx.fillStyle = '#8c959f';
+  ctx.fillRect(-11, -2, 4, 14);
+  ctx.fillRect(7, -2, 4, 14);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(-8, -2, 2, 8);
+
+  ctx.fillStyle = '#b0c4de';
+  ctx.fillRect(12, -12, 3, 20);
+  ctx.fillStyle = '#ffd166';
+  ctx.fillRect(9, -2, 9, 3);
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(12, -16, 3, 4);
+
+  ctx.fillStyle = CONFIG.COLORES.gatoCuerpo;
+  ctx.fillRect(-16, -22, 32, 18);
+
+  ctx.fillStyle = CONFIG.COLORES.gatoOscuro;
+  ctx.fillRect(-2, -22, 4, 6);
+
+  ctx.beginPath();
+  ctx.moveTo(-16, -22); ctx.lineTo(-10, -30); ctx.lineTo(-6, -22); ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(6, -22); ctx.lineTo(10, -30); ctx.lineTo(16, -22); ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = '#ffb3c6';
+  ctx.beginPath();
+  ctx.moveTo(-14, -23); ctx.lineTo(-10, -27); ctx.lineTo(-8, -23); ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(8, -23); ctx.lineTo(10, -27); ctx.lineTo(12, -23); ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = '#2ecc71';
+  ctx.fillRect(-8, -16, 4, 4);
+  ctx.fillRect(4, -16, 4, 4);
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(-7, -15, 2, 2);
+  ctx.fillRect(5, -15, 2, 2);
+
+  ctx.fillStyle = '#d35400';
+  ctx.fillRect(-1, -11, 2, 2);
+
+  ctx.restore();
+}
+
+function loop(){
+  if(!juegoActivo) return;
+  actualizar();
+  dibujar();
+  requestAnimationFrame(loop);
+}
+
+function ganarNivel(){
+  juegoActivo = false;
+  sonidoVictoria();
+  setTimeout(()=>{
+    document.getElementById('gameContainer').style.display = 'none';
+    mostrarEscenaFinal();
+  }, 550);
+}
+
+function mostrarEscenaFinal(){
+  document.getElementById('sceneScreen').style.display = 'flex';
+  lanzarConfetti();
+}
+
+function lanzarConfetti(){
+  const cont = document.getElementById('confetti');
+  cont.innerHTML = '';
+  const simbolos = ['🐾','❤️','💗','💖','✨','🐱','⭐'];
+  for(let i=0;i<50;i++){
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.textContent = simbolos[Math.floor(Math.random()*simbolos.length)];
+    el.style.left = Math.random()*100+'vw';
+    el.style.animationDuration = (2.5 + Math.random()*2.5)+'s';
+    el.style.animationDelay = (Math.random()*1.2)+'s';
+    el.style.fontSize = (14+Math.random()*16)+'px';
+    cont.appendChild(el);
+  }
+  setTimeout(()=>{ cont.innerHTML=''; }, 6000);
+}
+
+function generarFlotantes(contenedorId, cantidad){
+  const cont = document.getElementById(contenedorId);
+  if(!cont) return;
+  cont.innerHTML = '';
+  const simbolos = ['🐾','❤️','💗','✨','🐱','⭐'];
+  for(let i=0;i<cantidad;i++){
+    const el = document.createElement('div');
+    el.className = 'flotante';
+    el.textContent = simbolos[Math.floor(Math.random()*simbolos.length)];
+    el.style.left = Math.random()*100+'vw';
+    el.style.fontSize = (14+Math.random()*20)+'px';
+    el.style.animationDuration = (7+Math.random()*8)+'s';
+    el.style.animationDelay = (Math.random()*6)+'s';
+    cont.appendChild(el);
+  }
+}
+generarFlotantes('startDecor', 16);
+generarFlotantes('sceneDecor', 16);
+generarFlotantes('victoryDecor', 16);
+generarFlotantes('letterDecor', 16);
+
+const envelope = document.getElementById('envelope');
+const cartaBox = document.getElementById('cartaBox');
+const cartaTexto = document.getElementById('cartaTexto');
+let cartaAbierta = false;
+
+document.getElementById('btnSiguienteCarta').addEventListener('click', ()=>{
+  document.getElementById('sceneScreen').style.display = 'none';
+  document.getElementById('letterScreen').style.display = 'flex';
+});
+
+envelope.addEventListener('click', ()=>{
+  if(cartaAbierta) return;
+  cartaAbierta = true;
+  envelope.classList.add('abierto');
+
+  const audio = document.getElementById('musicaFondo');
+  if(audio){
+    audio.volume = 0.5;
+    audio.play().catch(e => console.log("Reproducción automática bloqueada"));
+  }
+
+  setTimeout(()=>{
+    envelope.style.display = 'none';
+    cartaBox.style.display = 'block';
+    escribirCarta();
+  }, 650);
+});
+
+function escribirCarta(){
+  const texto = CONFIG.CARTA_TEXTO;
+  let i = 0;
+  cartaTexto.textContent = '';
+  const cursor = document.createElement('span');
+  cursor.className = 'cursor-escritura';
+  cursor.textContent = '\u00A0';
+
+  const intervalo = setInterval(()=>{
+    cartaTexto.textContent = texto.slice(0, i);
+    cartaTexto.appendChild(cursor);
+    i++;
+    cartaBox.scrollTop = cartaBox.scrollHeight;
+    if(i > texto.length){
+      clearInterval(intervalo);
+      cursor.remove();
+      document.getElementById('cartaFirma').style.opacity = 1;
+      const boton = document.getElementById('volverJugar');
+      boton.classList.remove('oculto');
+      requestAnimationFrame(()=> boton.style.opacity = 1);
+    }
+  }, 22);
+}
+
+document.getElementById('volverJugar').addEventListener('click', reiniciarTodo);
+
+document.getElementById('btnComenzar').addEventListener('click', ()=>{
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('gameContainer').style.display = 'flex';
+  
+  const audio = document.getElementById('musicaFondo');
+  if(audio){
+    audio.volume = 0.4;
+    audio.play().catch(e => console.log("Reproducción automática bloqueada"));
+  }
+
+  iniciarPartida();
+});
+
+function iniciarPartida(){
+  monedasRecolectadas = 0;
+  document.getElementById('contadorMonedas').textContent = 0;
+  generarMundo();
+  juegoActivo = true;
+  requestAnimationFrame(loop);
+}
+
+function reiniciarTodo(){
+  cartaAbierta = false;
+  envelope.classList.remove('abierto');
+  envelope.style.display = 'block';
+  cartaBox.style.display = 'none';
+  cartaTexto.textContent = '';
+  document.getElementById('cartaFirma').style.opacity = 0;
+  const boton = document.getElementById('volverJugar');
+  boton.style.opacity = 0;
+  boton.classList.add('oculto');
+  
+  const audio = document.getElementById('musicaFondo');
+  if(audio){ audio.pause(); audio.currentTime = 0; }
+
+  document.getElementById('letterScreen').style.display = 'none';
+  document.getElementById('startScreen').style.display = 'flex';
+}
+
+generarMundo();
+dibujar();
+</script>
+</body>
+</html>
